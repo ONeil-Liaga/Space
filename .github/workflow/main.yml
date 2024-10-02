@@ -1,0 +1,39 @@
+name: PHP CI
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        php-versions: ['7.4', '8.0', '8.1']
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Set up PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php-versions }}
+          extensions: mbstring, intl
+          coverage: none
+
+      - name: Install Composer dependencies
+        run: composer install --no-progress --no-suggest
+
+      - name: Run PHP lint
+        run: |
+          find . -name "*.php" -print0 | xargs -0 -n 1 php -l
+
+      - name: Run PHPUnit tests
+        run: |
+          vendor/bin/phpunit --coverage-text
